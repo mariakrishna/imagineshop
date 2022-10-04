@@ -12,7 +12,7 @@ const port = 3000;
 app.use(express.json());
 
 app.get("/", async (req, res) => {
-  res.send("IMAGINE SHOP!");
+  return res.status(200).json({ message: "Imagineshop" });
 });
 
 app.post("/login", async (req, res) => {
