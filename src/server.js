@@ -5,6 +5,7 @@ const Jwt = pkg;
 
 import { authMiddleware } from "./middlewares/authMidleware.js";
 import { UserService } from "./services/user-services.js";
+import { ProductService } from "./services/product-services.js";
 
 const app = express();
 const port = 3000;
@@ -22,11 +23,17 @@ app.post("/login", async (req, res) => {
   if (userLogged) {
     const secretKey = process.env.SECRET_KEY;
     const token = Jwt.sign({ user: userLogged }, secretKey, {
-      expiresIn: "3600s",
+      expiresIn: "1d",
     });
     return res.status(200).json({ token });
   }
   return res.status(400).json({ message: "e-mail ou senha inválidos" });
+});
+
+app.get("/products", async (req, res) => {
+  const productService = new ProductService();
+  const products = await productService.findAll();
+  return res.status(200).json(products);
 });
 
 app.use(authMiddleware);
@@ -78,6 +85,17 @@ app.put("/users/:id", async (req, res) => {
     return res.status(200).json(userUpdated);
   }
   return res.status(404).json({ message: "Usuário não encontrado." });
+});
+
+app.post("/product", async (req, res) => {
+  /*
+    fileName: String,*/
+  const { name, description, price, summary, stock } = req.body;
+  const product = { name, description, price, summary, stock };
+  const productService = new ProductService();
+  await productService.create(product);
+
+  return res.status(201).json(product);
 });
 
 app.listen(process.env.PORT || port, () => {
