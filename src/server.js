@@ -5,11 +5,11 @@ const Jwt = pkg;
 import multer from "multer";
 import crypto from "crypto";
 import { extname } from "path";
+import cors from "cors";
 
 import { authMiddleware } from "./middlewares/authMidleware.js";
 import { UserService } from "./services/user-services.js";
 import { ProductService } from "./services/product-services.js";
-import { Console } from "console";
 
 const app = express();
 const port = 3300;
@@ -26,6 +26,7 @@ const storage = multer.diskStorage({
 
 const uploadMiddleware = multer({ storage });
 
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -124,6 +125,17 @@ app.post("/products", uploadMiddleware.single("image"), async (req, res) => {
 
   await productService.create(product);
   return res.status(201).json(product);
+});
+
+app.post("/products/sell", async (req, res) => {
+  const { products } = req.body;
+  const productService = new ProductService();
+
+  for (const product of products) {
+    await productService.sellProducts(product);
+  }
+
+  return res.status(200).json({ message: "sucess!" });
 });
 
 app.listen(process.env.PORT || port, () => {
