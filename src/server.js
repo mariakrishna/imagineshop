@@ -111,7 +111,7 @@ app.post("/products", uploadMiddleware.single("image"), async (req, res) => {
   const fileName = req.file.filename;
   const product = { name, description, price, summary, stock, fileName };
   const productService = new ProductService();
-  console.log(product);
+
   await productService.create(product);
   return res.status(201).json(product);
 });
