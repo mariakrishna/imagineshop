@@ -15,9 +15,9 @@ export const authMiddleware = (req, res, next) => {
     { ignoreExpiration: false },
     async (err, decodecToken) => {
       if (err) {
-        res
+        return res
           .status(401)
-          .json({ message: "Aconteceu um erro ao logar no sistema" });
+          .json({ message: "Aconteceu um erro ao logar no sistema." });
       }
       const isValidToken = decodecToken && decodecToken.user;
       if (!isValidToken) {
