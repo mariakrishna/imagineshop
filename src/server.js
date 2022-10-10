@@ -1,19 +1,36 @@
 import "dotenv/config";
-import express, { json } from "express";
+import express from "express";
 import pkg from "jsonwebtoken";
 const Jwt = pkg;
+import multer from "multer";
+import crypto from "crypto";
+import { extname } from "path";
 
 import { authMiddleware } from "./middlewares/authMidleware.js";
 import { UserService } from "./services/user-services.js";
 import { ProductService } from "./services/product-services.js";
+import { Console } from "console";
 
 const app = express();
 const port = 3000;
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    const newFileName = crypto.randomBytes(32).toString("hex");
+    const fileExtension = extname(file.originalname);
+    cb(null, `${newFileName}${fileExtension}`);
+  },
+});
+
+const uploadMiddleware = multer({ storage });
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get("/", async (req, res) => {
-  return res.status(200).json({ message: "Imagineshop" });
+  res.send("imagine shop");
 });
 
 app.post("/login", async (req, res) => {
@@ -36,6 +53,7 @@ app.get("/products", async (req, res) => {
   return res.status(200).json(products);
 });
 
+app.use("/uploads", express.static("uploads"));
 app.use(authMiddleware);
 
 app.post("/users", async (req, res) => {
@@ -81,20 +99,20 @@ app.put("/users/:id", async (req, res) => {
   const userService = new UserService();
   const findUser = await userService.findById(id);
   if (findUser) {
-    const userUpdated = await userService.update(id);
-    return res.status(200).json(userUpdated);
+    await userService.update(id, user);
+    return res.status(200).json({ message: "Usuário atualizado." });
   }
   return res.status(404).json({ message: "Usuário não encontrado." });
 });
 
-app.post("/product", async (req, res) => {
-  /*
-    fileName: String,*/
+app.post("/products", uploadMiddleware.single("image"), async (req, res) => {
   const { name, description, price, summary, stock } = req.body;
-  const product = { name, description, price, summary, stock };
-  const productService = new ProductService();
-  await productService.create(product);
 
+  const fileName = req.file.filename;
+  const product = { name, description, price, summary, stock, fileName };
+  const productService = new ProductService();
+  console.log(product);
+  await productService.create(product);
   return res.status(201).json(product);
 });
 
