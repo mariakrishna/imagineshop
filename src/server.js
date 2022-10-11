@@ -31,7 +31,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", async (req, res) => {
-  res.send("imagine shop");
+  res.send("tá funcionando");
 });
 
 app.post("/login", async (req, res) => {
